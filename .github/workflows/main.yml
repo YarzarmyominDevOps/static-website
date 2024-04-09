@@ -1,0 +1,56 @@
+name: Deploy Static Website
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.1
+
+      # - name: Setup Node.js environment
+      #   uses: actions/setup-node@v4.0.2
+      #   with:
+      #     node-version: 18
+
+      # - name: Install Dependencies
+      #   run: npm install
+
+      # - name: Build
+      #   run: npm run build
+
+      # - name: Cache Dependencies
+      #   uses: actions/cache@v4.0.2
+      #   with:
+      #     path: node_modules
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json')}}
+      
+      # - name: Cache build output
+      #   uses: actions/cache@v4.0.2
+      #   with:
+      #     path: dist
+      #     key: ${{ runner.os }}-dist-${{ hashFiles('**/dist/**')}}
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop' && success()
+    steps:
+      - name: Install AWS CLI
+        run: |
+          sudo apt update
+          sudo apt install -y awscli
+      # aws s3 sync ./ s3://$S3_BUCKET_DEV --delete --exclude ".git/*"
+      - name: Deploy to DEV environment
+        run: |
+          aws s3 sync ./ s3://${{ secrets.S3_BUCKET_DEV }} --delete --exclude ".git/*"
+          echo "Deployment to DEV environment successfully completed"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}

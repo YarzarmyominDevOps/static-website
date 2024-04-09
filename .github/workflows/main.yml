@@ -41,16 +41,14 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/develop' && success()
     steps:
-      - name: Install AWS CLI
-        run: |
-          sudo apt update
-          sudo apt install -y awscli
-      # aws s3 sync ./ s3://$S3_BUCKET_DEV --delete --exclude ".git/*"
-      - name: Deploy to DEV environment
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Deploy static site to S3 bucket
         run: |
           aws s3 sync ./ s3://${{ secrets.S3_BUCKET_DEV }} --delete --exclude ".git/*"
-          echo "Deployment to DEV environment successfully completed"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          echo "Deployment to DEV environment successfully completed"      

@@ -50,5 +50,5 @@ jobs:
 
       - name: Deploy static site to S3 bucket
         run: |
-          aws s3 sync ./ s3://${{ secrets.S3_BUCKET_DEV }} --delete --exclude ".git/*"
+          aws s3 sync ./ s3://yz-static-github --delete --exclude ".git/*"
           echo "Deployment to DEV environment successfully completed"      
